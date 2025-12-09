@@ -192,13 +192,17 @@ cp configs/env.example .env
 nano .env  # Required: OPENAI_API_KEY
            # Optional: SEARCH_API_KEY (Brave for web search), KAGGLE_USERNAME, KAGGLE_KEY
 
-# 5. Download dataset
-# See data/DATASET_SETUP.md for Kaggle CLI usage (needs username + key)
-
-# 6. Build vector index
+# 5. Build vector index
+# Option A: Quick start (3 sample items)
 PYTHONPATH="$PWD" .venv/bin/python indexing/build_index.py
 
-# 7. Verify setup
+# Option B: Full dataset (10,002 items from Kaggle)
+# First: Download from Kaggle (see data/DATASET_SETUP.md)
+# Then:
+DATA_PRODUCTS="./data/raw/home/sdf/marketing_sample_for_amazon_com-ecommerce__20200101_20200131__10k_data.csv" \
+  PYTHONPATH="$PWD" .venv/bin/python indexing/build_index.py
+
+# 6. Verify setup
 .venv/bin/python - <<'PY'
 import chromadb
 client = chromadb.PersistentClient(path='./data/index')
@@ -371,6 +375,8 @@ If `SEARCH_API_KEY` is not set, web search is gracefully disabled (queries fall 
 
 ### Limitations ⚠️
 
+- **RAG dataset**: 10,002 items (sample from Kaggle); doesn't cover all product categories
+  - Missing items: Web search fallback fills gaps (e.g., "rice cooker" → returns Brave results)
 - Dataset lacks ratings/reviews
 - Fragment TTS (not streaming)
 - Sequential agents (no parallelism)
