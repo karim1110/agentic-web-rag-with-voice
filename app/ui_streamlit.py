@@ -51,15 +51,29 @@ if st.button("Transcribe & Search"):
     st.subheader("Answer")
     st.write(final["answer"])
 
+    # Display RAG results in table
     rag = (final.get("evidence") or {}).get("rag", [])
     if rag:
+        st.subheader("📚 Retrieved Products (RAG)")
         df = pd.DataFrame(rag)[["title","brand","price","rating","ingredients"]].head(5)
         st.dataframe(df, use_container_width=True)
+
+    # Display web results as links
+    web = (final.get("evidence") or {}).get("web", [])
+    if web:
+        st.subheader("🌐 Web Search Results")
+        for item in web[:5]:
+            st.write(f"• [{item.get('title', 'Link')}]({item.get('url', '#')})")
 
     st.subheader("Citations")
     st.write(final.get("citations", []))
 
-    if st.button("🔊 Play TTS"):
-        out_path = synthesize(final["answer"])
-        audio = open(out_path, "rb").read()
-        st.audio(io.BytesIO(audio), format="audio/wav")
+    # Store results in session state to preserve across reruns
+    st.session_state.tts_answer = final["answer"]
+    st.session_state.tts_path = final.get("tts_path")
+
+# Play TTS button outside the search block (won't trigger rerun of search)
+if "tts_answer" in st.session_state and st.button("🔊 Play TTS"):
+    out_path = synthesize(st.session_state.tts_answer)
+    audio = open(out_path, "rb").read()
+    st.audio(io.BytesIO(audio), format="audio/wav")
