@@ -189,7 +189,8 @@ brew install ffmpeg  # macOS
 
 # 4. Configure API keys
 cp configs/env.example .env
-nano .env  # Add OPENAI_API_KEY; optional: KAGGLE_USERNAME, KAGGLE_KEY
+nano .env  # Required: OPENAI_API_KEY
+           # Optional: SEARCH_API_KEY (Brave for web search), KAGGLE_USERNAME, KAGGLE_KEY
 
 # 5. Download dataset
 # See data/DATASET_SETUP.md for Kaggle CLI usage (needs username + key)
@@ -333,6 +334,26 @@ LLM_MODEL=llama-3.1-8b
 LLM_BASE_URL=http://localhost:11434/v1
 ```
 
+### Web Search (Optional)
+
+The system can augment RAG results with live web search when queries indicate a need for current information (e.g., "today", "current", "latest").
+
+**Enable Brave Search** (recommended):
+1. Get API key: https://api.search.brave.com
+2. Add to `.env`:
+   ```bash
+   SEARCH_API_KEY=<your-brave-api-key>
+   SEARCH_PROVIDER=brave
+   ```
+3. Test:
+   ```bash
+   curl -X POST http://127.0.0.1:8000/web.search \
+     -H "Content-Type: application/json" \
+     -d '{"query":"best product today","top_k":5}'
+   ```
+
+If `SEARCH_API_KEY` is not set, web search is gracefully disabled (queries fall back to RAG only).
+
 ---
 
 ## 📊 Results
@@ -343,7 +364,8 @@ LLM_BASE_URL=http://localhost:11434/v1
 - Multi-agent reasoning (LangGraph)
 - Grounded answers with citations
 - Model-agnostic (OpenAI, Claude tested)
-- MCP server (2 tools, logging, discovery)
+- MCP server (2 tools: rag.search, web.search)
+- Live web search with Brave API (optional)
 - Safety checks (chemical mixing, medical)
 - Transparent agent logs
 
